@@ -27,7 +27,7 @@ end
 m = Map(shadowsocksr, translate("ShadowSocksR Client"))
 
 local server_table = {}
-local arp_table = luci.sys.net.arptable() or {}
+local arp_table = luci.ip.neighbors()
 local encrypt_methods = {
 	"none",
 	"aes-128-ctr",
