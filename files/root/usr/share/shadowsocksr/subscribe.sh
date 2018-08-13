@@ -23,8 +23,11 @@ CheckIPAddr() {
 Server_Update() {
     local uci_set="uci -q set $name.$1."
     ${uci_set}alias="[$ssr_group] $ssr_remarks"
+	${uci_set}auth_enable='0'
+	${uci_set}switch_enable='0'
     ${uci_set}server="$ssr_host"
     ${uci_set}server_port="$ssr_port"
+	${uci_set}local_port='1234'
     ${uci_set}password="$ssr_passwd"
     uci -q get $name.@servers[$1].timeout >/dev/null || ${uci_set}timeout="60"
     ${uci_set}encrypt_method="$ssr_method"
@@ -32,6 +35,12 @@ Server_Update() {
     ${uci_set}protocol_param="$ssr_protoparam"
     ${uci_set}obfs="$ssr_obfs"
     ${uci_set}obfs_param="$ssr_obfsparam"
+	${uci_set}fast_open='0'
+	${uci_set}kcp_enable='0'
+	${uci_set}kcp_port='4000'
+	${uci_set}kcp_param='--nocomp'
+
+	
 }
 
 name=shadowsocksr
@@ -110,19 +119,19 @@ do
                         ;;
                     esac
                 done
-                CheckIPAddr $ssr_host
-                if [ $? -ne 0 ]; then
-                    ssr_hosts=($(nslookup $ssr_host | grep 'Address [1-9]' | awk '{print $3}'))
+#                CheckIPAddr $ssr_host
+#                if [ $? -ne 0 ]; then
+#                    ssr_hosts=($(nslookup $ssr_host | grep 'Address [1-9]' | awk '{print $3}'))
                     
-                    for ((i=0;i<${#ssr_hosts[@]};i++))
-                    do
-                        ssr_host=${ssr_hosts[i]}
-                        CheckIPAddr $ssr_host
-                        [ $? -eq 0 ] && continue
-                        ssr_host=""
-                    done
-                    [ -z "$ssr_host" ] && continue
-                fi
+#                    for ((i=0;i<${#ssr_hosts[@]};i++))
+#                    do
+#                        ssr_host=${ssr_hosts[i]}
+#                        CheckIPAddr $ssr_host
+#                        [ $? -eq 0 ] && continue
+#                        ssr_host=""
+#                    done
+#                    [ -z "$ssr_host" ] && continue
+#                fi
                 
                 uci_name_tmp=$(uci show $name | grep -w $ssr_host | awk -F . '{print $2}')
                 if [ -z "$uci_name_tmp" ]; then # 判断当前服务器信息是否存在
@@ -132,15 +141,15 @@ do
                 Server_Update $uci_name_tmp
                 subscribe_x=${subscribe_x}$ssr_host" "
 
-                # echo "服务器地址: $ssr_host"
-                # echo "服务器端口 $ssr_port"
-                # echo "密码: $ssr_passwd"
-                # echo "加密: $ssr_method"
-                # echo "协议: $ssr_protocol"
-                # echo "协议参数: $ssr_protoparam"
-                # echo "混淆: $ssr_obfs"
-                # echo "混淆参数: $ssr_obfsparam"
-                # echo "备注: $ssr_remarks"
+                 echo "服务器:$ssr_remarks $ssr_host"
+                 #echo "服务器端口 $ssr_port"
+                 #echo "密码: $ssr_passwd"
+                 #echo "加密: $ssr_method"
+                 #echo "协议: $ssr_protocol"
+                 #echo "协议参数: $ssr_protoparam"
+                 #echo "混淆: $ssr_obfs"
+                 #echo "混淆参数: $ssr_obfsparam"
+                 #echo "备注: $ssr_remarks"
             done
             for ((x=0;x<${#temp_host_o[@]};x++)) # 新旧服务器信息匹配，如果旧服务器信息不存在于新服务器信息则删除
             do
