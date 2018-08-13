@@ -38,7 +38,7 @@ define Package/openwrt-ssr/Default
 	CATEGORY:=LuCI
 	SUBMENU:=3. Applications
 	TITLE:=shadowsocksR-libev LuCI interface
-	URL:=https://github.com/gdwgi1225/openwrt-ssr
+	URL:=https://github.com/jerrykuku/openwrt-ssr
 	VARIANT:=$(1)
 	DEPENDS:=$(3)
 	PKGARCH:=all
