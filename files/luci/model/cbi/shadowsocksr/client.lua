@@ -105,7 +105,7 @@ if nixio.fs.access("/usr/share/shadowsocksr/subscribe.sh") and has_bin("base64")
 	o = se:option(Button,"update",translate("Update"))
 	o.write = function()
 	luci.sys.call("/usr/share/shadowsocksr/subscribe.sh >/dev/null 2>&1")
-	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "servers"))
+	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "client"))
 	end
 end
 
