@@ -5,9 +5,10 @@ ShadowsocksR-libev for OpenWrt
 简介
 ---
 
- 本项目是 [shadowsocksr-libev][1] 在 OpenWrt 上的移植  
+ 本项目是 [shadowsocksr-libev][1] 在 OpenWrt 上的移植 
  
- 各平台预编译IPK请在本项目releases页面下载
+ 主要适配 orangepi zero plus 的官方版 Openwrt 18.06.0
+ 固件下载地址 https://downloads.openwrt.org/releases/18.06.0/targets/sunxi/cortexa53/openwrt-18.06.0-sunxi-cortexa53-sun50i-h5-orangepi-zero-plus-ext4-sdcard.img.gz
 
 特性
 ---
@@ -71,10 +72,12 @@ ShadowsocksR-libev for OpenWrt
    tar xjf OpenWrt-SDK-15.05-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
    cd OpenWrt-SDK-*
    # 安装 feeds
-   ./scripts/feeds update packages
+   ./scripts/feeds update
+   ./scripts/feeds install zlib
+   ./scripts/feeds install libopenssl
    ./scripts/feeds install libpcre
    # 获取 Makefile
-   git clone https://github.com/gdwgi1225/openwrt-ssr.git package/openwrt-ssr
+   git clone https://github.com/jerrykuku/openwrt-ssr.git package/openwrt-ssr
    # 选择要编译的包 
    #luci ->3. Applications-> luci-app-shadowsocksR         原始版本
    #luci ->3. Applications-> luci-app-shadowsocksR-GFW     GFWList版本
