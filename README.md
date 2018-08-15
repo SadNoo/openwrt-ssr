@@ -8,8 +8,11 @@ ShadowsocksR-LUCI-APP for OpenWrt 18.06
  本项目是 [shadowsocksr-libev][1] 在 OpenWrt 上的移植 
  
  主要适配 orangepi zero plus 的官方版 Openwrt 18.06.0
+ 
  固件下载地址 https://downloads.openwrt.org/releases/18.06.0/targets/sunxi/cortexa53/openwrt-18.06.0-sunxi-cortexa53-sun50i-h5-orangepi-zero-plus-ext4-sdcard.img.gz
- SDK下载地址  https://downloads.openwrt.org/releases/18.06.0/targets/sunxi/cortexa53/openwrt-sdk-18.06.0-sunxi-cortexa53_gcc-7.3.0_musl.Linux-x86_64.tar.xz
+ 
+ SDK下载地址 https://downloads.openwrt.org/releases/18.06.0/targets/sunxi/cortexa53/openwrt-sdk-18.06.0-sunxi-cortexa53_gcc-7.3.0_musl.Linux-x86_64.tar.xz
+ 
 特性
 ---
 
@@ -72,11 +75,14 @@ ShadowsocksR-LUCI-APP for OpenWrt 18.06
    xz -d openwrt-sdk-18.06.0-sunxi-cortexa53_gcc-7.3.0_musl.Linux-x86_64.tar.xz
    tar -xvf openwrt-sdk-18.06.0-sunxi-cortexa53_gcc-7.3.0_musl.Linux-x86_64.tar
    cd openwrt-sdk-18.06.0-sunxi-cortexa53_gcc-7.3.0_musl.Linux-x86_64
-   # 安装 feeds
+   # 如果中文Ubuntu 需要
+   export LANG=C
+   # 安装 feeds 
+   ./scripts/feeds update packages
+   ./scripts/feeds install libpcre
    ./scripts/feeds update
    ./scripts/feeds install zlib
    ./scripts/feeds install libopenssl
-   ./scripts/feeds install libpcre
    # 获取 Makefile
    git clone https://github.com/jerrykuku/openwrt-ssr.git package/openwrt-ssr
    # 选择要编译的包 
