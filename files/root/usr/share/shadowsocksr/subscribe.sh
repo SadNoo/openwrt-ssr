@@ -1,11 +1,17 @@
 #!/bin/bash
 # Copyright (C) 2017 XiaoShan https://www.mivm.cn
+# Copyright (C) 2018 jerrykuku
+
 
 urlsafe_b64decode() {
     local d="====" data=$(echo $1 | sed 's/_/\//g; s/-/+/g')
     local mod4=$((${#data}%4))
     [ $mod4 -gt 0 ] && data=${data}${d:mod4}
     echo $data | base64 -d
+}
+
+echo_date(){
+	echo 【$(TZ=UTC-8 date -R +%Y年%m月%d日\ %X)】:$1
 }
 
 CheckIPAddr() {
@@ -39,22 +45,32 @@ Server_Update() {
 	${uci_set}kcp_enable='0'
 	${uci_set}kcp_port='4000'
 	${uci_set}kcp_param='--nocomp'
-
-	
 }
+
 
 name=shadowsocksr
 subscribe_url=($(uci get $name.@server_subscribe[0].subscribe_url))
 [ ${#subscribe_url[@]} -eq 0 ] && exit 1
 [ $(uci -q get $name.@server_subscribe[0].proxy || echo 0) -eq 0 ] && /etc/init.d/$name stop >/dev/null 2>&1
 log_name=${name}_subscribe
+
+echo_date "开始订阅"
 for ((o=0;o<${#subscribe_url[@]};o++))
 do
+	echo_date "==================================================================="
+	echo_date "                 服务器订阅程序"
+	echo_date "==================================================================="
+	echo_date "从 ${subscribe_url[o]} 获取订阅"
+	echo_date "开始更新在线订阅列表..." 
+    echo_date "开始下载订阅链接到本地临时文件，请稍等..."
     subscribe_data=$(curl -s -L --connect-timeout 3 ${subscribe_url[o]})
     curl_code=$?
     if [ $curl_code -eq 0 ];then
+		echo_date "下载订阅成功..."
+		echo_date "开始解析节点信息..."
         ssr_url=($(echo $subscribe_data | base64 -d | sed 's/\r//g')) # 解码数据并删除 \r 换行符
         subscribe_max=$(echo ${ssr_url[0]} | grep -i MAX= | awk -F = '{print $2}') 
+		
         subscribe_max_x=()
         if [ -n "$subscribe_max" ]; then
             while [ ${#subscribe_max_x[@]} -ne $subscribe_max ]
@@ -73,6 +89,7 @@ do
         else
             subscribe_max=${#ssr_url[@]}
         fi
+		echo_date "共计$subscribe_max个节点"
         ssr_group=$(urlsafe_b64decode $(urlsafe_b64decode ${ssr_url[$((${#ssr_url[@]} - 1))]//ssr:\/\//} | sed 's/&/\n/g' | grep group= | awk -F = '{print $2}'))
         if [ -n "$ssr_group" ]; then
             subscribe_i=0
@@ -119,19 +136,19 @@ do
                         ;;
                     esac
                 done
-#                CheckIPAddr $ssr_host
-#                if [ $? -ne 0 ]; then
-#                    ssr_hosts=($(nslookup $ssr_host | grep 'Address [1-9]' | awk '{print $3}'))
+                CheckIPAddr $ssr_host
+                if [ $? -ne 0 ]; then
+                    ssr_hosts=($(nslookup $ssr_host | grep 'Address [1-9]' | awk '{print $3}'))
                     
-#                    for ((i=0;i<${#ssr_hosts[@]};i++))
-#                    do
-#                        ssr_host=${ssr_hosts[i]}
-#                        CheckIPAddr $ssr_host
-#                        [ $? -eq 0 ] && continue
-#                        ssr_host=""
-#                    done
-#                    [ -z "$ssr_host" ] && continue
-#                fi
+                    for ((i=0;i<${#ssr_hosts[@]};i++))
+                    do
+                        ssr_host=${ssr_hosts[i]}
+                        CheckIPAddr $ssr_host
+                        [ $? -eq 0 ] && continue
+                        ssr_host=""
+                    done
+                    [ -z "$ssr_host" ] && continue
+                fi
                 
                 uci_name_tmp=$(uci show $name | grep -w $ssr_host | awk -F . '{print $2}')
                 if [ -z "$uci_name_tmp" ]; then # 判断当前服务器信息是否存在
@@ -141,7 +158,7 @@ do
                 Server_Update $uci_name_tmp
                 subscribe_x=${subscribe_x}$ssr_host" "
 
-                 echo "服务器:$ssr_remarks $ssr_host"
+                 echo_date "SSR节点：【$ssr_remarks】"
                  #echo "服务器端口 $ssr_port"
                  #echo "密码: $ssr_passwd"
                  #echo "加密: $ssr_method"
@@ -159,13 +176,17 @@ do
                     subscribe_o=$(($subscribe_o + 1))
                 fi
             done
+			echo_date "本次更新订阅来源 【$ssr_group】 服务器数量: ${#ssr_url[@]} 新增服务器: $subscribe_n 删除服务器: $subscribe_o"
+			echo_date "在线订阅列表更新完成!"
             subscribe_log="$ssr_group 服务器订阅更新成功 服务器数量: ${#ssr_url[@]} 新增服务器: $subscribe_n 删除服务器: $subscribe_o"
             logger -st $log_name[$$] -p6 "$subscribe_log"
             uci commit $name
         else
+			echo_date "${subscribe_url[$o]} 订阅数据解析失败 无法获取 Group"
             logger -st $log_name[$$] -p3 "${subscribe_url[$o]} 订阅数据解析失败 无法获取 Group"
         fi
     else
+	    echo_date "${subscribe_url[$o]} 订阅数据获取失败 错误代码: $curl_code"
         logger -st $log_name[$$] -p3 "${subscribe_url[$o]} 订阅数据获取失败 错误代码: $curl_code"
     fi
 done

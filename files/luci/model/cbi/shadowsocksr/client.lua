@@ -1,33 +1,32 @@
 -- Copyright (C) 2017 yushi studio <ywb94@qq.com> github.com/ywb94
 -- Licensed to the public under the GNU General Public License v3.
-
-local m, s,sec, o,kcp_enable
+local m, s, sec, o, kcp_enable
 local shadowsocksr = "shadowsocksr"
 local uci = luci.model.uci.cursor()
 local ipkg = require("luci.model.ipkg")
 
 local sys = require "luci.sys"
 
-local gfwmode=0
+local gfwmode = 0
 
-local pdnsd_flag=0
+local pdnsd_flag = 0
 
 local function has_bin(name)
-	return luci.sys.call("command -v %s >/dev/null" %{name}) == 0
+	return luci.sys.call("command -v %s >/dev/null" % {name}) == 0
 end
 
 if nixio.fs.access("/etc/dnsmasq.ssr/gfw_list.conf") then
-gfwmode=1		
+	gfwmode = 1	
 end
 
 if nixio.fs.access("/etc/pdnsd.conf") then
-pdnsd_flag=1		
+	pdnsd_flag = 1	
 end
 
 m = Map(shadowsocksr, translate("ShadowSocksR Client"))
 
 local server_table = {}
-local arp_table = luci.ip.neighbors()
+local arp_table = luci.ip.neighbors({family = 4})
 local encrypt_methods = {
 	"none",
 	"aes-128-ctr",
@@ -76,7 +75,7 @@ uci:foreach(shadowsocksr, "servers", function(s)
 	if s.alias then
 		server_table[s[".name"]] = s.alias
 	elseif s.server and s.server_port then
-		server_table[s[".name"]] = "%s:%s" %{s.server, s.server_port}
+		server_table[s[".name"]] = "%s:%s" % {s.server, s.server_port}
 	end
 end)
 
@@ -85,28 +84,36 @@ end)
 if nixio.fs.access("/usr/share/shadowsocksr/subscribe.sh") and has_bin("base64") and has_bin("curl") and has_bin("bash") then
 	se = m:section(TypedSection, "server_subscribe", translate("Server subscription"))
 	se.anonymous = true
-
+	
 	o = se:option(Flag, "auto_update", translate("Auto Update"))
 	o.rmempty = false
-
+	
 	o = se:option(Flag, "proxy", translate("Through proxy update"))
 	o.rmempty = false
-
+	
 	o = se:option(ListValue, "auto_update_time", translate("Update time (every day)"))
-	for t = 0,23 do
-	o:value(t, t..":00")
+	for t = 0, 23 do
+		o:value(t, t .. ":00")
 	end
-	o.default=2
+	o.default = 2
 	o.rmempty = false
-
+	
 	o = se:option(DynamicList, "subscribe_url", translate("Subscribe URL"))
 	o.rmempty = true
-
-	o = se:option(Button,"update",translate("Update"))
+	
+	
+	
+	o = se:option(Button, "update", translate("Update"))
 	o.write = function()
-	luci.sys.call("/usr/share/shadowsocksr/subscribe.sh >/dev/null 2>&1")
-	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "client"))
+		luci.sys.call("/usr/share/shadowsocksr/subscribe.sh >/www/check_update.htm")
+		luci.sys.exec("sleep 2")
+		luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "client"))
 	end
+	
+	o = se:option(DummyValue, "", "")
+	o.rawhtml = true
+	o.template = "shadowsocksr/update_subscribe"
+	
 end
 
 -- [[ Servers Setting ]]--
@@ -197,33 +204,33 @@ o.datatype = "uinteger"
 o:depends("enable_switch", "1")
 o.default = 3
 
-if gfwmode==0 then 
-
-o = s:option(Flag, "tunnel_enable", translate("Enable Tunnel(DNS)"))
-o.default = 0
-o.rmempty = false
-
-o = s:option(Value, "tunnel_port", translate("Tunnel Port"))
-o.datatype = "port"
-o.default = 5300
-o.rmempty = false
-
+if gfwmode == 0 then
+	
+	o = s:option(Flag, "tunnel_enable", translate("Enable Tunnel(DNS)"))
+	o.default = 0
+	o.rmempty = false
+	
+	o = s:option(Value, "tunnel_port", translate("Tunnel Port"))
+	o.datatype = "port"
+	o.default = 5300
+	o.rmempty = false
+	
 else
-
-
-
-o = s:option(ListValue, "gfw_enable", translate("Operating mode"))
-o:value("router", translate("IP Route Mode"))
-o:value("gfw", translate("GFW List Mode"))
-o.rmempty = false
-
-if pdnsd_flag==1 then
-o = s:option(ListValue, "pdnsd_enable", translate("Resolve Dns Mode"))
-o:value("0", translate("Use DNS Tunnel"))
-o:value("1", translate("Use Pdnsd"))
-o.rmempty = false
-end
-
+	
+	
+	
+	o = s:option(ListValue, "gfw_enable", translate("Operating mode"))
+	o:value("router", translate("IP Route Mode"))
+	o:value("gfw", translate("GFW List Mode"))
+	o.rmempty = false
+	
+	if pdnsd_flag == 1 then
+		o = s:option(ListValue, "pdnsd_enable", translate("Resolve Dns Mode"))
+		o:value("0", translate("Use DNS Tunnel"))
+		o:value("1", translate("Use Pdnsd"))
+		o.rmempty = false
+	end
+	
 end
 
 o = s:option(Value, "tunnel_forward", translate("DNS Server IP and Port"))
@@ -269,7 +276,7 @@ o.datatype = "ip4addr"
 -- Part of LAN
 s:tab("lan_ac", translate("Interfaces - LAN"))
 
-o = s:taboption("lan_ac",ListValue, "router_proxy", translate("Router Proxy"))
+o = s:taboption("lan_ac", ListValue, "router_proxy", translate("Router Proxy"))
 o:value("1", translatef("Normal Proxy"))
 o:value("0", translatef("Bypassed Proxy"))
 o:value("2", translatef("Forwarded Proxy"))
@@ -283,6 +290,6 @@ o.rmempty = false
 
 o = s:taboption("lan_ac", DynamicList, "lan_ac_ips", translate("LAN Host List"))
 o.datatype = "ipaddr"
-for _, v in ipairs(arp_table) do o:value(v["IP address"]) end
+for _, v in ipairs(arp_table) do o:value(v.dest) end
 
 return m

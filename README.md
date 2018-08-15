@@ -1,4 +1,4 @@
-ShadowsocksR-libev for OpenWrt
+ShadowsocksR-LUCI-APP for OpenWrt 18.06
 ===
 
 
@@ -9,7 +9,7 @@ ShadowsocksR-libev for OpenWrt
  
  主要适配 orangepi zero plus 的官方版 Openwrt 18.06.0
  固件下载地址 https://downloads.openwrt.org/releases/18.06.0/targets/sunxi/cortexa53/openwrt-18.06.0-sunxi-cortexa53-sun50i-h5-orangepi-zero-plus-ext4-sdcard.img.gz
-
+ SDK下载地址  https://downloads.openwrt.org/releases/18.06.0/targets/sunxi/cortexa53/openwrt-sdk-18.06.0-sunxi-cortexa53_gcc-7.3.0_musl.Linux-x86_64.tar.xz
 特性
 ---
 
@@ -17,7 +17,7 @@ ShadowsocksR-libev for OpenWrt
 
 支持SSR客户端、服务端模式（服务端支持部分混淆模式、支持多端口）
 
-支持SOCK5代理；支持UDP中继；支持广告屏蔽
+支持SOCK5代理；支持UDP中继；支持广告屏蔽；支持订阅功能
 
 支持两种运行模式：IP路由模式和GFW列表模式（GFWList）
 
@@ -68,9 +68,10 @@ ShadowsocksR-libev for OpenWrt
  - 下载路由器对应平台的SDK
 
    ```bash
-   # 以 ar71xx 平台为例
-   tar xjf OpenWrt-SDK-15.05-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
-   cd OpenWrt-SDK-*
+   # 以 orangepi zero plus 的 sunxi H5 平台为例
+   xz -d openwrt-sdk-18.06.0-sunxi-cortexa53_gcc-7.3.0_musl.Linux-x86_64.tar.xz
+   tar -xvf openwrt-sdk-18.06.0-sunxi-cortexa53_gcc-7.3.0_musl.Linux-x86_64.tar
+   cd openwrt-sdk-18.06.0-sunxi-cortexa53_gcc-7.3.0_musl.Linux-x86_64
    # 安装 feeds
    ./scripts/feeds update
    ./scripts/feeds install zlib
@@ -94,19 +95,7 @@ ShadowsocksR-libev for OpenWrt
    # 开始编译
     make package/openwrt-ssr/compile V=99
    ```
- - LEDE编译补充
- 
-   LEDE是OpenWRT的另一个版本，LEDE的SDK采用xz压缩，需先用xz -d解压下载的SDK包，再按上述命令操作
-   
-   使用LEDE的SDK编译，可能会提示找不到zlib和openssl文件，请运行如下命令
- 
-   ```bash
-   ./scripts/feeds update
-   #如果更新base出现错误，修改SDK目录下的feeds.conf.default文件，将“source.git;HEAD”改为“source.git”
-   
-   ./scripts/feeds install zlib
-   ./scripts/feeds install libopenssl
-   ```
+ - 
  - Pandorabox(潘多拉)编译补充
  
   潘多拉也是Openwrt的另一个定制版本，用16.10版本的SDK编译时无法使用feed获取安装包，需要先将libpcre、zlib、libopenssl等makefile放入SDK的package目录，再make menuconfig

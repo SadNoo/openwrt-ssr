@@ -1,8 +1,11 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
+msgid "ShadowSocksR"
+msgstr "科学上网"
+
 msgid "ShadowSocksR Client"
-msgstr "ShadowSocksR 客户端"
+msgstr "科学上网 客户端"
 
 msgid "Enable"
 msgstr "启用"
@@ -11,10 +14,10 @@ msgid "Disable"
 msgstr "停用"
 
 msgid "ShadowSocksR is running"
-msgstr "ShadowSocksR 客户端运行中"
+msgstr "科学上网 客户端运行中"
 
 msgid "ShadowSocksR is not running"
-msgstr "ShadowSocksR 客户端未运行"
+msgstr "科学上网 客户端未运行"
 
 msgid "Global Setting"
 msgstr "全局设置"

@@ -1,0 +1,88 @@
+<%+cbi/valueheader%>
+	<style>
+		.modals {
+			position: fixed;
+			z-index: 100;
+			width: 50%;
+			height: 500px;
+			background: rgba(0, 0, 0);
+			left: 25%;
+			top: 15%;
+			color: #fff;
+			border-radius: 10px;
+			padding: 20px;
+			display: none;
+			box-sizing: border-box;
+			-moz-box-sizing: border-box;
+			/* Firefox */
+			-webkit-box-sizing: border-box;
+			/* Safari */
+		}
+
+		.modals h2 {}
+
+		.modals h3 {
+			font-size: 14px;
+			color: #ffcc00;
+		}
+	</style>
+	<script type="text/javascript">
+		//<![CDATA[
+		var _responseLen;
+		var noChange = 0;
+		var x = 5;
+		function update_subscribe() {
+			$(".modals").show();
+			setTimeout("get_realtime_log();", 500);
+		}
+
+		var btn = document.getElementsByClassName("cbi-button-button");
+		btn[0].addEventListener("click", function () {
+			update_subscribe()
+		}, false);
+
+		function get_realtime_log() {
+			$.ajax({
+				url: '/check_update.htm',
+				dataType: 'html',
+				error: function (xhr) {
+					setTimeout("get_realtime_log();", 1000);
+				},
+				success: function (response) {
+					var retArea = document.getElementById("log_content3");
+					if (response.search("XU6J03M6") != -1) {
+						console.log(response);
+						retArea.value = response;
+						retArea.scrollTop = retArea.scrollHeight;
+						x = 5;
+						return true;
+					}
+					if (_responseLen == response.length) {
+						noChange++;
+					} else {
+						noChange = 0;
+					}
+					console.log(noChange);
+					if (noChange > 100) {
+						return false;
+					} else {
+						setTimeout("get_realtime_log();", 250);
+					}
+					retArea.value = response;
+					retArea.scrollTop = retArea.scrollHeight;
+					_responseLen = response.length;
+				},
+				error: function () {
+					setTimeout("get_realtime_log();", 500);
+				}
+			});
+		}
+//]]>
+	</script>
+	<div class="modals">
+		<h2>SSR节点订阅 ...</h2>
+		<h3>请勿刷新本页面，正在订阅中 ...</h3>
+		<textarea cols="63" rows="28" wrap="on" readonly="readonly" id="log_content3" autocomplete="off" autocorrect="off" autocapitalize="off"
+		 spellcheck="false" style="border:1px solid #000;width:99%; font-family:'Lucida Console'; font-size:11px;background:#000;color:#FFFFFF;outline: none;padding-left:3px;padding-right:22px;overflow:hidden"></textarea>
+	</div>
+	<%+cbi/valuefooter%>
